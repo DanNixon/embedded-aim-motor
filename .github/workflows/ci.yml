@@ -1,0 +1,85 @@
+---
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+jobs:
+  formatting:
+    name: Formatting
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v5
+      - uses: cachix/install-nix-action@v31
+      - uses: cachix/cachix-action@v16
+        with:
+          name: devenv
+      - name: Install devenv.sh
+        run: nix profile install nixpkgs#devenv
+
+      - name: Format
+        shell: devenv shell bash -- -e {0}
+        run: treefmt --fail-on-change
+
+  library:
+    name: Library
+    runs-on: ubuntu-latest
+    needs:
+      - formatting
+
+    steps:
+      - uses: actions/checkout@v5
+      - uses: cachix/install-nix-action@v31
+      - uses: cachix/cachix-action@v16
+        with:
+          name: devenv
+      - name: Install devenv.sh
+        run: nix profile install nixpkgs#devenv
+
+      - name: Clippy
+        shell: devenv shell bash -- -e {0}
+        run: cargo clippy -- -Dwarnings
+
+      - name: Build
+        shell: devenv shell bash -- -e {0}
+        run: cargo build
+
+  examples:
+    name: Example
+    runs-on: ubuntu-latest
+    needs:
+      - library
+
+    strategy:
+      matrix:
+        firmware:
+          - drive
+          - parameters
+          - set-baud
+
+    steps:
+      - uses: actions/checkout@v5
+      - uses: cachix/install-nix-action@v31
+      - uses: cachix/cachix-action@v16
+        with:
+          name: devenv
+      - name: Install devenv.sh
+        run: nix profile install nixpkgs#devenv
+
+      - name: Clippy
+        shell: devenv shell bash -- -e {0}
+        run: |
+          set -x
+          cd ./examples/${{ matrix.example }}
+          cargo clippy -- -Dwarnings
+
+      - name: Build
+        shell: devenv shell bash -- -e {0}
+        run: |
+          set -x
+          cd ./examples/${{ matrix.example }}
+          cargo build --release
