@@ -44,7 +44,12 @@ async fn main(_spawner: Spawner) {
 
     let mut uart = BufferedUart::new(p.UART0, p.PIN_0, p.PIN_1, Irqs, tx_buf, rx_buf, config);
 
-    let mut motor = Motor::new(&mut uart, RtuBaud::Baud19200, Duration::from_millis(100));
+    let mut motor = Motor::new(
+        &mut uart,
+        RtuBaud::Baud19200,
+        0x01,
+        Duration::from_millis(100),
+    );
 
     motor.set_modbus_enabled(true).await.unwrap();
     motor.set_electronic_gear_numerator(0).await.unwrap();

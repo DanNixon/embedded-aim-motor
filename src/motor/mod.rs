@@ -22,13 +22,13 @@ pub struct Motor<I: embedded_io_async::Read + embedded_io_async::Write> {
 }
 
 impl<I: embedded_io_async::Read + embedded_io_async::Write> Motor<I> {
-    pub fn new(comm: I, baud: RtuBaud, response_timeout: Duration) -> Self {
+    pub fn new(comm: I, baud: RtuBaud, address: u8, response_timeout: Duration) -> Self {
         Self {
             comm,
             t15: baud.t15(),
             t35: baud.t35(),
             response_timeout,
-            address: 0x01,
+            address,
             buffer: [0u8; 64],
             earliest_next_frame: Instant::now(),
         }

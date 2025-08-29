@@ -43,7 +43,12 @@ async fn main(_spawner: Spawner) {
 
     let mut uart = BufferedUart::new(p.UART0, p.PIN_0, p.PIN_1, Irqs, tx_buf, rx_buf, config);
 
-    let mut motor = Motor::new(&mut uart, RtuBaud::Baud19200, Duration::from_millis(50));
+    let mut motor = Motor::new(
+        &mut uart,
+        RtuBaud::Baud19200,
+        0x01,
+        Duration::from_millis(50),
+    );
 
     loop {
         info!("=== Parameters:");

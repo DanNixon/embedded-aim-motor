@@ -47,7 +47,7 @@ async fn main(_spawner: Spawner) {
     let original_baud = RtuBaud::Baud19200;
     let new_baud = RtuBaud::Baud115200;
 
-    let mut motor = Motor::new(&mut uart, original_baud, Duration::from_millis(50));
+    let mut motor = Motor::new(&mut uart, original_baud, 0x01, Duration::from_millis(50));
     info!("Device address: {}", motor.device_address().await);
 
     motor.set_baud_rate(new_baud.clone()).await.unwrap();
