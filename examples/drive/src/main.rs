@@ -3,7 +3,7 @@
 #![no_std]
 #![no_main]
 
-use defmt::{debug, info};
+use defmt::{debug, info, warn};
 use embassy_executor::Spawner;
 use embassy_futures::select::{Either, select};
 use embassy_rp::{
@@ -48,7 +48,7 @@ async fn main(_spawner: Spawner) {
         &mut uart,
         RtuBaud::Baud19200,
         0x01,
-        Duration::from_millis(20),
+        Duration::from_millis(40),
     );
 
     motor.set_modbus_enabled(true).await.unwrap();
@@ -72,7 +72,7 @@ async fn main(_spawner: Spawner) {
                 if res.is_ok() {
                     position = position.saturating_add(5000);
                 } else {
-                    info!("fuck");
+                    warn!("Motor communication failed");
                 }
 
                 let delta = end - start;
