@@ -48,7 +48,7 @@ async fn main(_spawner: Spawner) {
         &mut uart,
         RtuBaud::Baud19200,
         0x01,
-        Duration::from_millis(40),
+        Duration::from_millis(25),
     );
 
     motor.set_modbus_enabled(true).await.unwrap();
