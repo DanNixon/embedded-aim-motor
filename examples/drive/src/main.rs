@@ -11,7 +11,7 @@ use embassy_rp::{
     peripherals::UART0,
     uart::{BufferedInterruptHandler, BufferedUart, Config, DataBits, Parity, StopBits},
 };
-use embassy_time::{Duration, Ticker};
+use embassy_time::{Duration, Instant, Ticker};
 use embedded_aim_motor::{Motor, RtuBaud};
 use portable_atomic as _;
 use static_cell::StaticCell;
@@ -68,9 +68,9 @@ async fn main(_spawner: Spawner) {
         match select(motor_tick.next(), report_tick.next()).await {
             Either::First(_) => {
                 if comm_ok {
-                    let start = embassy_time::Instant::now();
+                    let start = Instant::now();
                     let _ = motor.set_absolute_position_custom(position).await;
-                    let end = embassy_time::Instant::now();
+                    let end = Instant::now();
 
                     position = position.saturating_add(5000);
 
@@ -78,21 +78,28 @@ async fn main(_spawner: Spawner) {
                     debug!("delta = {}ms", delta.as_millis());
                 }
             }
-            Either::Second(_) => match motor.absolute_position().await {
-                Ok(actual) => {
-                    comm_ok = true;
-                    info!(
-                        "Position requested/actual: {}/{} (diff {})",
-                        position,
-                        actual,
-                        position - actual
-                    );
+            Either::Second(_) => {
+                let start = Instant::now();
+                match motor.absolute_position().await {
+                    Ok(actual) => {
+                        comm_ok = true;
+                        info!(
+                            "Position requested/actual: {}/{} (diff {})",
+                            position,
+                            actual,
+                            position - actual
+                        );
+                    }
+                    Err(_) => {
+                        warn!("Motor communication failed");
+                        comm_ok = false;
+                    }
                 }
-                Err(_) => {
-                    warn!("Motor communication failed");
-                    comm_ok = false;
-                }
-            },
+                let end = Instant::now();
+
+                let delta = end - start;
+                debug!("delta = {}ms", delta.as_millis());
+            }
         }
     }
 }
