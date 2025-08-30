@@ -3,7 +3,7 @@
 #![no_std]
 #![no_main]
 
-use defmt::{debug, info};
+use defmt::{debug, info, warn};
 use embassy_executor::Spawner;
 use embassy_futures::select::{Either, select};
 use embassy_rp::{
@@ -53,37 +53,46 @@ async fn main(_spawner: Spawner) {
 
     motor.set_modbus_enabled(true).await.unwrap();
     motor.set_electronic_gear_numerator(0).await.unwrap();
-    motor.set_target_rpm(1500).await.unwrap();
+    motor.set_target_rpm(1000).await.unwrap();
     motor.set_acceleration(3000).await.unwrap();
     motor.set_parameter_save_flag(true).await.unwrap();
 
     let mut position = 0u32;
 
     let mut motor_tick = Ticker::every(Duration::from_millis(20));
-    let mut pos_tick = Ticker::every(Duration::from_millis(500));
+    let mut report_tick = Ticker::every(Duration::from_millis(100));
+
+    let mut comm_ok = false;
 
     loop {
-        match select(motor_tick.next(), pos_tick.next()).await {
+        match select(motor_tick.next(), report_tick.next()).await {
             Either::First(_) => {
-                let start = embassy_time::Instant::now();
-                let _ = motor.set_absolute_position_custom(position).await;
-                let end = embassy_time::Instant::now();
+                if comm_ok {
+                    let start = embassy_time::Instant::now();
+                    let _ = motor.set_absolute_position_custom(position).await;
+                    let end = embassy_time::Instant::now();
 
-                position = position.saturating_add(1000);
+                    position = position.saturating_add(5000);
 
-                let delta = end - start;
-                debug!("delta = {}ms", delta.as_millis());
+                    let delta = end - start;
+                    debug!("delta = {}ms", delta.as_millis());
+                }
             }
-            Either::Second(_) => {
-                if let Ok(actual) = motor.absolute_position().await {
+            Either::Second(_) => match motor.absolute_position().await {
+                Ok(actual) => {
+                    comm_ok = true;
                     info!(
-                        "pos req/act: {}/{} (diff {})",
+                        "Position requested/actual: {}/{} (diff {})",
                         position,
                         actual,
                         position - actual
                     );
                 }
-            }
+                Err(_) => {
+                    warn!("Motor communication failed");
+                    comm_ok = false;
+                }
+            },
         }
     }
 }
