@@ -3,7 +3,7 @@
 #![no_std]
 #![no_main]
 
-use defmt::{debug, info, warn};
+use defmt::{debug, info};
 use embassy_executor::Spawner;
 use embassy_futures::select::{Either, select};
 use embassy_rp::{
@@ -48,7 +48,7 @@ async fn main(_spawner: Spawner) {
         &mut uart,
         RtuBaud::Baud19200,
         0x01,
-        Duration::from_millis(100),
+        Duration::from_millis(20),
     );
 
     motor.set_modbus_enabled(true).await.unwrap();
@@ -62,43 +62,31 @@ async fn main(_spawner: Spawner) {
     let mut motor_tick = Ticker::every(Duration::from_millis(20));
     let mut report_tick = Ticker::every(Duration::from_millis(100));
 
-    let mut comm_ok = false;
-
     loop {
         match select(motor_tick.next(), report_tick.next()).await {
             Either::First(_) => {
-                if comm_ok {
-                    let start = Instant::now();
-                    let _ = motor.set_absolute_position_custom(position).await;
-                    let end = Instant::now();
-
-                    position = position.saturating_add(5000);
-
-                    let delta = end - start;
-                    debug!("delta = {}ms", delta.as_millis());
-                }
-            }
-            Either::Second(_) => {
                 let start = Instant::now();
-                match motor.absolute_position().await {
-                    Ok(actual) => {
-                        comm_ok = true;
-                        info!(
-                            "Position requested/actual: {}/{} (diff {})",
-                            position,
-                            actual,
-                            position - actual
-                        );
-                    }
-                    Err(_) => {
-                        warn!("Motor communication failed");
-                        comm_ok = false;
-                    }
-                }
+                let res = motor.set_absolute_position(position).await;
                 let end = Instant::now();
+
+                if res.is_ok() {
+                    position = position.saturating_add(5000);
+                } else {
+                    info!("fuck");
+                }
 
                 let delta = end - start;
                 debug!("delta = {}ms", delta.as_millis());
+            }
+            Either::Second(_) => {
+                if let Ok(actual) = motor.absolute_position().await {
+                    info!(
+                        "Position requested/actual: {}/{} (diff {})",
+                        position,
+                        actual,
+                        position - actual
+                    );
+                }
             }
         }
     }
