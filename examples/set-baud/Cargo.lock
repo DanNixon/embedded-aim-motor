@@ -398,8 +398,8 @@ dependencies = [
  "embedded-hal 1.0.0",
  "embedded-hal-async",
  "embedded-hal-nb",
- "embedded-io",
- "embedded-io-async",
+ "embedded-io 0.6.1",
+ "embedded-io-async 0.6.1",
  "embedded-storage",
  "embedded-storage-async",
  "fixed",
@@ -421,7 +421,7 @@ checksum = "73974a3edbd0bd286759b3d483540f0ebef705919a5f56f4fc7709066f71689b"
 dependencies = [
  "cfg-if",
  "critical-section",
- "embedded-io-async",
+ "embedded-io-async 0.6.1",
  "futures-core",
  "futures-sink",
  "heapless",
@@ -470,16 +470,16 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "17119855ccc2d1f7470a39756b12068454ae27a3eabb037d940b5c03d9c77b7a"
 dependencies = [
  "defmt",
- "embedded-io-async",
+ "embedded-io-async 0.6.1",
 ]
 
 [[package]]
 name = "embedded-aim-motor"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "defmt",
  "embassy-time",
- "embedded-io-async",
+ "embedded-io-async 0.7.0",
  "modbus-core",
  "thiserror",
 ]
@@ -542,12 +542,27 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "edd0f118536f44f5ccd48bcb8b111bdc3de888b58c74639dfb034a357d0f206d"
 
 [[package]]
+name = "embedded-io"
+version = "0.7.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "9eb1aa714776b75c7e67e1da744b81a129b3ff919c8712b5e1b32252c1f07cc7"
+
+[[package]]
 name = "embedded-io-async"
 version = "0.6.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "3ff09972d4073aa8c299395be75161d582e7629cd663171d62af73c8d50dba3f"
 dependencies = [
- "embedded-io",
+ "embedded-io 0.6.1",
+]
+
+[[package]]
+name = "embedded-io-async"
+version = "0.7.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "2564b9f813c544241430e147d8bc454815ef9ac998878d30cc3055449f7fd4c0"
+dependencies = [
+ "embedded-io 0.7.1",
 ]
 
 [[package]]
@@ -688,9 +703,9 @@ dependencies = [
 
 [[package]]
 name = "keccak"
-version = "0.1.5"
+version = "0.1.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ecc2af9a1119c51f12a14607e783cb977bde58bc069ff0c3da1095e635d70654"
+checksum = "cb26cec98cce3a3d96cbb7bced3c4b16e3d13f27ec56dbd62cbc8f39cfb9d653"
 dependencies = [
  "cpufeatures",
 ]
@@ -763,12 +778,11 @@ checksum = "32a282da65faaf38286cf3be983213fcf1d2e2a58700e808f83f4ea9a4804bc0"
 
 [[package]]
 name = "modbus-core"
-version = "0.1.1"
+version = "0.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e4a1e3def3d3adb12fdfd70ae251450c2f05ebed959c138a177abe03f98fe174"
+checksum = "60040f846a5440a37a3f2deb113ab80924ce672428e94b0a419d95c31a84802a"
 dependencies = [
  "byteorder",
- "log",
 ]
 
 [[package]]
